@@ -1,5 +1,6 @@
 package study.querydsl;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
@@ -11,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.entity.QMember.*;
@@ -76,12 +79,80 @@ public class QuerydslBasicTest {
         Member findMember = queryFactory
                 .selectFrom(member)
                 .where(member.username.eq("member1")
-                        .and(member.age.eq(10)))
+                        .and(member.age.between(10,30)))
                 .fetchOne();
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
 
     }
+
+    @Test
+    public void searchAndParam(){
+
+        List<Member> result1 = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"),
+                        member.age.eq(10))
+                .fetch();
+
+        assertThat(result1.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void sort(){
+        em.persist(new Member(null,100));
+        em.persist(new Member("member5",100));
+        em.persist(new Member("member6",100));
+
+        List<Member> result = queryFactory.selectFrom(member)
+                .where(member.age.eq(100))
+                .orderBy(member.age.desc(), member.username.asc().nullsLast())
+                .fetch();
+
+        Member member5 = result.get(0);
+        Member member6 = result.get(1);
+        Member memberNull = result.get(2);
+
+        assertThat(member5.getUsername()).isEqualTo("member5");
+        assertThat(member6.getUsername()).isEqualTo("member6");
+        assertThat(memberNull.getUsername()).isNull();
+
+
+    }
+
+    @Test
+    public void paging1(){
+        List<Member> result = queryFactory.selectFrom(member)
+                .orderBy(member.username.desc())
+                .offset(1)
+                .limit(2)
+                .fetch();
+
+
+        assertThat(result.size()).isEqualTo(2);
+    }
+
+    @Test
+    public void aggregation() throws Exception{
+
+        List<Tuple> result = queryFactory
+                .select(member.count(),
+                        member.age.sum(),
+                        member.age.avg(),
+                        member.age.max(),
+                        member.age.min())
+                .from(member)
+                .fetch();
+
+        Tuple tuple = result.get(0);
+
+        assertThat(tuple.get(member.count())).isEqualTo(4);
+        assertThat(tuple.get(member.age.sum())).isEqualTo(100);
+        assertThat(tuple.get(member.age.avg())).isEqualTo(25);
+        assertThat(tuple.get(member.age.max())).isEqualTo(40);
+        assertThat(tuple.get(member.age.min())).isEqualTo(10);
+    }
+
 
 
 }
