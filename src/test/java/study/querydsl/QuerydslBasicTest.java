@@ -174,6 +174,27 @@ public class QuerydslBasicTest {
 
     }
 
+    /**
+     * 팀 A 에 소속된 모든 회원
+     */
+    @Test
+    public void join() throws Exception{
+        QMember member = QMember.member;
+        QTeam team = QTeam.team;
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .join(member.team, team)
+                .where(team.name.eq("teamA"))
+                .fetch();
+
+        assertThat(result)
+                .extracting("username")
+                .containsExactly("member1","member2");
+    }
+
+
+
 
 
 }
