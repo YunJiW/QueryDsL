@@ -2,6 +2,7 @@ package study.querydsl;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -331,6 +332,57 @@ public class QuerydslBasicTest {
 
         for (String s : result) {
             System.out.println("s = "  + s);
+        }
+    }
+
+
+    @Test
+    public void constant(){
+        List<Tuple> a = queryFactory
+                .select(member.username, Expressions.constant("A"))
+                .from(member)
+                .fetch();
+
+        for (Tuple tuple : a) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    @Test
+    public void concat(){
+        String result = queryFactory
+                .select(member.username.concat("_").concat(member.age.stringValue()))
+                .from(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        System.out.println(result);
+
+
+    }
+
+    @Test
+    public void projection(){
+        List<String> result = queryFactory
+                .select(member.username)
+                .from(member)
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+
+        List<Tuple> res = queryFactory
+                .select(member.username, member.age)
+                .from(member)
+                .fetch();
+
+        for (Tuple re : res) {
+            String username = re.get(member.username);
+            Integer age = re.get(member.age);
+
+            System.out.println("username = " + username);
+            System.out.println("age = " + age);
         }
     }
 
