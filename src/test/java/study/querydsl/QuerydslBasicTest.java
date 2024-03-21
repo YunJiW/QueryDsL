@@ -9,15 +9,18 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceUnit;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.support.QuerydslJpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.QMemberDto;
 import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
@@ -256,8 +259,6 @@ public class QuerydslBasicTest {
 
     @PersistenceUnit
     EntityManagerFactory emf;
-    @Autowired
-    private QuerydslJpaRepository querydslJpaRepository;
 
     @Test
     public void fetchNoJoin() throws Exception{
@@ -443,6 +444,20 @@ public class QuerydslBasicTest {
                         )
                 ).from(member)
                 .fetch();
+    }
+
+    @Test
+    public void QueryProjection(){
+
+        List<MemberDto> result = queryFactory
+                .select(new QMemberDto(member.username, member.age))
+                .from(member)
+                .fetch();
+        for (MemberDto memberDto : result) {
+
+            System.out.println("memberDto = " + memberDto);
+        }
+
     }
 
 }
