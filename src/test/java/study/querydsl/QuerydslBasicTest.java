@@ -521,4 +521,8 @@ public class QuerydslBasicTest {
         return ageCond != null ? member.age.eq(ageCond) : null;
     }
 
+    private BooleanExpression allEq(String usernameCond,Integer ageCond){
+        return usernameEq(usernameCond).and(ageEq(ageCond));
+    }
+
 }
