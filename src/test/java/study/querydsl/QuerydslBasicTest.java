@@ -557,4 +557,5 @@ public class QuerydslBasicTest {
                 .fetchFirst();
     }
 
+
 }
