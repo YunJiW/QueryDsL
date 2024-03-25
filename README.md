@@ -6,3 +6,5 @@
 
 
 ## 순수 JPA repo에 Querydsl 추가
+- memberJPARepo 를 추가
+  - Querydsl을 memberJpaRepo에 추가.
