@@ -3,7 +3,6 @@ package study.querydsl;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -17,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
 import study.querydsl.dto.QMemberDto;
@@ -475,11 +475,11 @@ public class QuerydslBasicTest {
         BooleanBuilder builder = new BooleanBuilder();
 
         //if 문으로 이 조건을 만족하면 and문을 통해서 조건 추가
-        if(usernameCond != null){
+        if (usernameCond != null) {
             builder.and(member.username.eq(usernameCond));
         }
 
-        if(ageCond != null){
+        if (ageCond != null) {
             builder.and(member.age.eq(ageCond));
         }
 
@@ -491,7 +491,7 @@ public class QuerydslBasicTest {
     }
 
     @Test
-    public void dynamicQuery_WhereParam(){
+    public void dynamicQuery_WhereParam() {
         String usernameParam = "member1";
         Integer ageParam = 10;
 
@@ -507,7 +507,7 @@ public class QuerydslBasicTest {
 
         return queryFactory
                 .selectFrom(member)
-                .where(usernameEq(usernameCond),ageEq(ageCond))
+                .where(usernameEq(usernameCond), ageEq(ageCond))
                 .fetch();
     }
 
@@ -521,8 +521,42 @@ public class QuerydslBasicTest {
         return ageCond != null ? member.age.eq(ageCond) : null;
     }
 
-    private BooleanExpression allEq(String usernameCond,Integer ageCond){
+    private BooleanExpression allEq(String usernameCond, Integer ageCond) {
         return usernameEq(usernameCond).and(ageEq(ageCond));
     }
+
+    @Test
+    @Commit
+    //트랜잭션이 테스트에 걸린경우 마지막에 전부 롤백시켜버려서 확인이 불가능함.
+    //그렇기 때문에 따로 Commit을 넣어서 남겨두기.
+    public void bulkUpdate() {
+
+        long count = queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+    }
+
+    @Test
+    @Commit
+    public void bulkDelete() {
+
+        long count = queryFactory
+                .delete(member)
+                .where(member.age.gt(18))
+                .execute();
+    }
+
+    @Test
+    public void sqlFunction() {
+        queryFactory
+                .select(Expressions.stringTemplate("function('replace',{0},{1},{2})",
+                        member.username, "member", "M"))
+                .from(member)
+                .fetchFirst();
+    }
+
+
 
 }
