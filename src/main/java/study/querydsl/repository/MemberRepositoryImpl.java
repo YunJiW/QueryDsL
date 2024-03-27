@@ -1,14 +1,17 @@
 package study.querydsl.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import study.querydsl.dto.MemberSearchCond;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
+import study.querydsl.entity.Member;
 
 import java.util.List;
 
@@ -88,17 +91,31 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 .fetch();
 
 
-        Long total = queryFactory
-                .select(member.count())
+//        Long total = queryFactory
+//                .select(member.count())
+//                .from(member)
+//                .leftJoin(member.team, team)
+//                .where(usernameEq(cond.getUsername()),
+//                        teamNameEq(cond.getTeamName()),
+//                        ageGoe(cond.getAgeGoe()),
+//                        ageLoe(cond.getAgeLoe()))
+//                .fetchOne();
+
+
+        JPAQuery<Member> countQuery = queryFactory
+                .select(member)
                 .from(member)
                 .leftJoin(member.team, team)
                 .where(usernameEq(cond.getUsername()),
                         teamNameEq(cond.getTeamName()),
                         ageGoe(cond.getAgeGoe()),
-                        ageLoe(cond.getAgeLoe()))
-                .fetchOne();
+                        ageLoe(cond.getAgeLoe()));
 
 
-        return new PageImpl<>(content,pageable,total);
+//        return new PageImpl<>(content,pageable,total);
+
+        return PageableExecutionUtils.getPage(content,pageable,countQuery::fetchCount);
     }
+
+
 }
